@@ -4,8 +4,61 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asignación de Nombres</title>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js"></script>
+    <!-- Usar módulos de Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+        import { getDatabase, ref, get, set, push } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+
+        // Configuración de Firebase (reemplaza con tus credenciales)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDj1MgIQoC--WIjrUq_ccE26iYf9r-mD3s",
+            authDomain: "amigas-52a73.firebaseapp.com",
+            databaseURL: "https://amigas-52a73-default-rtdb.firebaseio.com",
+            projectId: "amigas-52a73",
+            storageBucket: "amigas-52a73.firebasestorage.app",
+            messagingSenderId: "185840708110",
+            appId: "1:185840708110:web:f9c20393253d5660c6ea5f"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Lista de nombres únicos
+        const nombres = ["angeluz", "batel", "lady", "yudi", "rocio"];
+
+        // Función para asignar un nombre único
+        async function asignarNombre() {
+            const dbRef = ref(db, "nombres");
+
+            // Obtener los nombres ya asignados
+            const snapshot = await get(dbRef);
+            const asignados = snapshot.exists() ? snapshot.val() : {};
+
+            // Buscar un nombre disponible
+            let nombreAsignado = null;
+            for (const nombre of nombres) {
+                if (!Object.values(asignados).includes(nombre)) {
+                    nombreAsignado = nombre;
+                    break;
+                }
+            }
+
+            if (nombreAsignado) {
+                // Guardar el nombre asignado con una clave única
+                const nuevaClave = push(dbRef).key;
+                await set(ref(db, "nombres/" + nuevaClave), nombreAsignado);
+
+                // Mostrar el nombre asignado
+                document.getElementById("nombre").innerText = nombreAsignado;
+            } else {
+                document.getElementById("nombre").innerText = "No hay más nombres disponibles.";
+            }
+        }
+
+        // Ejecutar al cargar la página
+        asignarNombre();
+    </script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -23,56 +76,5 @@
 <body>
     <h1>Tu nombre asignado es:</h1>
     <p id="nombre" style="color: #007BFF;"></p>
-    <script>
-        // Configuración de Firebase (reemplaza con tus credenciales)
-        const firebaseConfig = {
-            apiKey: "AIzaSyDj1MgIQoC--WIjrUq_ccE26iYf9r-mD3s",
-            authDomain: "amigas-52a73.firebaseapp.com",
-            databaseURL: "https://amigas-52a73-default-rtdb.firebaseio.com",
-            projectId: "amigas-52a73",
-            storageBucket: "amigas-52a73.firebasestorage.app",
-            messagingSenderId: "185840708110",
-            appId: "1:185840708110:web:f9c20393253d5660c6ea5f"
-        };
-
-        // Inicializar Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        // Lista de nombres únicos
-        const nombres = ["angeluz", "batel", "lady", "yudi", "rocio"];
-
-        // Función para asignar un nombre único
-        async function asignarNombre() {
-            const dbRef = firebase.database().ref("nombres");
-
-            // Obtener los nombres ya asignados
-            const snapshot = await dbRef.get();
-            const asignados = snapshot.exists() ? snapshot.val() : {};
-
-            // Buscar un nombre disponible
-            let nombreAsignado = null;
-            for (const nombre of nombres) {
-                if (!Object.values(asignados).includes(nombre)) {
-                    nombreAsignado = nombre;
-                    break;
-                }
-            }
-
-            if (nombreAsignado) {
-                // Guardar el nombre asignado con una clave única
-                const nuevaClave = dbRef.push().key;
-                await dbRef.child(nuevaClave).set(nombreAsignado);
-
-                // Mostrar el nombre asignado
-                document.getElementById("nombre").innerText = nombreAsignado;
-            } else {
-                document.getElementById("nombre").innerText = "No hay más nombres disponibles.";
-            }
-        }
-
-        // Ejecutar al cargar la página
-        asignarNombre();
-    </script>
 </body>
 </html>
