@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asignación de Nombres</title>
+    <!-- Cargar Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js"></script>
     <style>
@@ -23,6 +24,7 @@
 <body>
     <h1>Tu nombre asignado es:</h1>
     <p id="nombre" style="color: #007BFF;"></p>
+
     <script>
         // Configuración de Firebase (reemplaza con tus credenciales)
         const firebaseConfig = {
@@ -42,37 +44,46 @@
         // Lista de nombres únicos
         const nombres = ["angeluz", "batel", "lady", "yudi", "rocio"];
 
-        // Función para asignar un nombre único
-        async function asignarNombre() {
-            const dbRef = firebase.database().ref("nombres");
+        // Verificar si ya hay un nombre asignado en el localStorage
+        const nombreAsignado = localStorage.getItem('nombreAsignado');
+        if (nombreAsignado) {
+            document.getElementById("nombre").innerText = nombreAsignado;
+        } else {
+            // Función para asignar un nombre único
+            async function asignarNombre() {
+                const dbRef = firebase.database().ref("nombres");
 
-            // Obtener los nombres ya asignados
-            const snapshot = await dbRef.get();
-            const asignados = snapshot.exists() ? snapshot.val() : {};
+                // Obtener los nombres ya asignados
+                const snapshot = await dbRef.get();
+                console.log(snapshot.val()); // Verificar qué datos se están obteniendo
+                const asignados = snapshot.exists() ? snapshot.val() : {};
+                let nombreDisponible = null;
 
-            // Buscar un nombre disponible
-            let nombreAsignado = null;
-            for (const nombre of nombres) {
-                if (!Object.values(asignados).includes(nombre)) {
-                    nombreAsignado = nombre;
-                    break;
+                for (const nombre of nombres) {
+                    if (!Object.values(asignados).includes(nombre)) {
+                        nombreDisponible = nombre;
+                        break;
+                    }
+                }
+
+                if (nombreDisponible) {
+                    // Guardar el nombre asignado con una clave única
+                    const nuevaClave = dbRef.push().key;
+                    await dbRef.child(nuevaClave).set(nombreDisponible);
+
+                    // Guardar el nombre en localStorage
+                    localStorage.setItem('nombreAsignado', nombreDisponible);
+
+                    // Mostrar el nombre asignado
+                    document.getElementById("nombre").innerText = nombreDisponible;
+                } else {
+                    document.getElementById("nombre").innerText = "No hay más nombres disponibles.";
                 }
             }
 
-            if (nombreAsignado) {
-                // Guardar el nombre asignado con una clave única
-                const nuevaClave = dbRef.push().key;
-                await dbRef.child(nuevaClave).set(nombreAsignado);
-
-                // Mostrar el nombre asignado
-                document.getElementById("nombre").innerText = nombreAsignado;
-            } else {
-                document.getElementById("nombre").innerText = "No hay más nombres disponibles.";
-            }
+            // Ejecutar la asignación de nombre
+            asignarNombre();
         }
-
-        // Ejecutar al cargar la página
-        asignarNombre();
     </script>
 </body>
 </html>
