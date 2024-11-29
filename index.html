@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asignación de Nombres</title>
-    <!-- Cargar los scripts de Firebase de forma tradicional -->
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js"></script>
     <style>
@@ -24,7 +23,6 @@
 <body>
     <h1>Tu nombre asignado es:</h1>
     <p id="nombre" style="color: #007BFF;"></p>
-
     <script>
         // Configuración de Firebase (reemplaza con tus credenciales)
         const firebaseConfig = {
@@ -38,7 +36,7 @@
         };
 
         // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
+        const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         // Lista de nombres únicos
@@ -46,13 +44,6 @@
 
         // Función para asignar un nombre único
         async function asignarNombre() {
-            // Verificar si el nombre ya está guardado en localStorage
-            const nombreGuardado = localStorage.getItem('nombreAsignado');
-            if (nombreGuardado) {
-                document.getElementById("nombre").innerText = nombreGuardado;
-                return;  // Ya tiene nombre asignado, no hace falta continuar
-            }
-
             const dbRef = firebase.database().ref("nombres");
 
             // Obtener los nombres ya asignados
@@ -73,9 +64,6 @@
                 const nuevaClave = dbRef.push().key;
                 await dbRef.child(nuevaClave).set(nombreAsignado);
 
-                // Guardar el nombre en localStorage para que no se repita
-                localStorage.setItem('nombreAsignado', nombreAsignado);
-
                 // Mostrar el nombre asignado
                 document.getElementById("nombre").innerText = nombreAsignado;
             } else {
@@ -83,8 +71,8 @@
             }
         }
 
-        // Ejecutar la función al cargar la página
-        window.onload = asignarNombre;
+        // Ejecutar al cargar la página
+        asignarNombre();
     </script>
 </body>
 </html>
